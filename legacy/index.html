@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FMGE Roadmap 2027 · Full MBBS Analysis</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- ===== HEADER ===== -->
+  <header class="hero">
+    <nav class="nav">
+      <div class="logo">⚕️ FMGE<span>Roadmap</span></div>
+      <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#analysis">Analysis</a></li>
+        <li><a href="#resources">Paid</a></li>
+        <li><a href="#free">Free</a></li>
+        <li><a href="#hours">Hours</a></li>
+        <li><a href="#smart">Smart Study</a></li>
+        <li><a href="#roadmap">Roadmap</a></li>
+        <li><a href="#phase1">Week-by-Week</a></li>
+        <li><a href="#schedule">Daily</a></li>
+        <li><a href="#tips">Tips</a></li>
+      </ul>
+    </nav>
+
+    <div class="hero-content">
+      <span class="badge">TARGET · FMGE JUNE 2027</span>
+      <h1>Your 13-Month FMGE Roadmap</h1>
+      <p class="subtitle">
+        Full subject analysis · Resource breakdown · Day-wise schedule
+        <br />Built for: Final-year MBBS · Starting fresh
+      </p>
+      <div class="hero-stats">
+        <div class="stat">
+          <div class="stat-num">19</div>
+          <div class="stat-label">Subjects</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">300</div>
+          <div class="stat-label">MCQs in exam</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">150</div>
+          <div class="stat-label">Pass mark</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">~2900</div>
+          <div class="stat-label">Study hours plan</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== OVERVIEW ===== -->
+  <section id="overview" class="section">
+    <h2>📌 FMGE at a Glance</h2>
+    <div class="grid grid-3">
+      <div class="card">
+        <h3>What is FMGE?</h3>
+        <p>Foreign Medical Graduate Examination — mandatory licensure exam by NMC (formerly MCI) for Indian students who studied MBBS abroad. Conducted twice a year (June & December).</p>
+      </div>
+      <div class="card">
+        <h3>Pattern</h3>
+        <ul>
+          <li>300 MCQs total</li>
+          <li>2 papers × 150 Qs (2.5 hrs each)</li>
+          <li>No negative marking</li>
+          <li>Pass = 50% (150 marks)</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Pass Rate Reality</h3>
+        <p>Historical pass rate: <strong>15–25%</strong>. Low pass rate is mostly due to <em>under-preparation</em>, not exam difficulty. A structured 12+ month plan dramatically improves odds.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== ANALYSIS ===== -->
+  <section id="analysis" class="section alt">
+    <h2>🔬 Subject-wise Analysis</h2>
+    <p class="muted">Sortable. Click column headers. Difficulty/Volume/Scoring rated 1–5.</p>
+
+    <div class="filters">
+      <button class="filter-btn active" data-phase="all">All</button>
+      <button class="filter-btn" data-phase="Pre-clinical">Pre-clinical</button>
+      <button class="filter-btn" data-phase="Para-clinical">Para-clinical</button>
+      <button class="filter-btn" data-phase="Clinical (Major)">Clinical Majors</button>
+      <button class="filter-btn" data-phase="Clinical (Short)">Clinical Shorts</button>
+    </div>
+
+    <div class="table-wrap">
+      <table id="subject-table">
+        <thead>
+          <tr>
+            <th data-sort="name">Subject</th>
+            <th data-sort="phase">Phase</th>
+            <th data-sort="weightage">Qs/300 ⬇</th>
+            <th data-sort="difficulty">Difficulty</th>
+            <th data-sort="volume">Volume</th>
+            <th data-sort="scoring">Scoring</th>
+            <th data-sort="hoursFirstRead">Hours (1st read)</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <h3 style="margin-top: 3rem;">📊 Weightage Distribution</h3>
+    <div id="weightage-chart" class="chart"></div>
+
+    <h3 style="margin-top: 3rem;">🎴 Deep-dive Cards</h3>
+    <div id="subject-cards" class="grid grid-2"></div>
+  </section>
+
+  <!-- ===== RESOURCES ===== -->
+  <section id="resources" class="section">
+    <h2>📚 Paid Resource Comparison</h2>
+    <p class="muted">Based on FMGE topper surveys (2023–2025) and current FMGE-specific content depth.</p>
+    <div id="resource-grid" class="grid grid-2"></div>
+    <div class="callout">
+      <strong>Recommendation for you:</strong> Get <strong>Marrow FMGE plan</strong> as primary
+      (best Q-bank + FMGE filter). Optionally supplement with <strong>PrepLadder V-notes</strong>
+      for Surgery/OBGY if you prefer notes-style learning.
+    </div>
+  </section>
+
+  <!-- ===== FREE RESOURCES ===== -->
+  <section id="free" class="section alt">
+    <h2>🆓 Free Resources (Zero Cost)</h2>
+    <p class="muted">If budget is tight, you can build a full FMGE prep using only these. Many toppers have passed with $0 spent.</p>
+    <div id="free-resources"></div>
+    <div class="callout">
+      💡 <strong>Smart play:</strong> Start with free resources for Month 1. Once you've built the habit
+      and know your weak subjects, invest in Marrow (or just its Q-bank) for the final 9 months.
+      This saves money + tests your commitment first.
+    </div>
+  </section>
+
+
+  <!-- ===== HOURS ===== -->
+  <section id="hours" class="section alt">
+    <h2>⏰ How Many Hours Should You Study?</h2>
+    <div id="hour-recommendation"></div>
+  </section>
+
+  <!-- ===== SMART STUDY ===== -->
+  <section id="smart" class="section">
+    <h2>🧠 Smart Study Techniques</h2>
+    <p class="muted">Evidence-based methods. These multiply your output without adding study hours. Use ALL of them — not pick one.</p>
+    <div id="smart-list" class="grid grid-2"></div>
+    <div class="callout" style="margin-top: 2rem;">
+      🎯 <strong>The Big 3 (if you only adopt 3):</strong>
+      <strong>Active Recall</strong> + <strong>Spaced Repetition (Anki)</strong> + <strong>PYQ-First Approach</strong>.
+      These three alone separate toppers from average scorers.
+    </div>
+  </section>
+
+  <!-- ===== ROADMAP ===== -->
+  <section id="roadmap" class="section alt">
+    <h2>🗺️ The 13-Month Roadmap</h2>
+    <p class="muted">7 phases · Each phase builds on the last · Test after every phase.</p>
+    <div id="roadmap-timeline" class="timeline"></div>
+  </section>
+
+  <!-- ===== PHASE 1 WEEKLY ===== -->
+  <section id="phase1" class="section">
+    <h2>📆 Phase 1 — Week-by-Week Plan (Detailed)</h2>
+    <p class="muted">Your first 8 weeks (Jun–Jul 2026). Pre-clinical foundation. Full detail to remove all guesswork.</p>
+    <div id="phase1-weeks" class="grid grid-2"></div>
+
+    <h3 style="margin-top: 3rem;">📋 Weekly Rhythm (Mon → Sun)</h3>
+    <p class="muted">This rhythm repeats every week across all 13 months.</p>
+    <div id="weekly-rhythm" class="daily"></div>
+
+    <h3 style="margin-top: 3rem;">🚀 Phases 2–7 — High-Level Weekly Outline</h3>
+    <p class="muted">Same level of detail as Phase 1 — request a phase to expand once you reach it.</p>
+    <div id="phase-outlines" class="grid grid-2"></div>
+  </section>
+
+  <!-- ===== DAILY SCHEDULE ===== -->
+  <section id="schedule" class="section alt">
+    <h2>📅 Smart Daily Cycle (Hour-by-Hour)</h2>
+    <p id="daily-intro" class="muted"></p>
+    <div id="daily-schedule"></div>
+    <div class="callout" id="daily-totals" style="margin-top: 1.5rem;"></div>
+  </section>
+
+  <!-- ===== TIPS ===== -->
+  <section id="tips" class="section">
+    <h2>💡 10 Non-Negotiable Tips</h2>
+    <div id="tips-list" class="grid grid-2"></div>
+  </section>
+
+  <footer class="footer">
+    <p>Built for your FMGE June 2027 prep. Update this anytime — just edit <code>data.js</code>.</p>
+    <p class="muted small">Disclaimer: Weightages are averages from past FMGE papers and vary per attempt.</p>
+  </footer>
+
+  <script src="data.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
