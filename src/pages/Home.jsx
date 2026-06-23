@@ -17,12 +17,14 @@ function getCurrentPhase() {
     e.setHours(23, 59, 59);
     if (today >= s && today <= e) return r;
   }
-  if (today < new Date(ROADMAP[0].start)) return null; // pre-start
+  if (today < new Date(ROADMAP[0].start)) return "PRE";
+  if (today > new Date(ROADMAP[ROADMAP.length - 1].end)) return "POST";
   return null;
 }
 
 export default function Home() {
-  const totalWeightage = SUBJECTS.reduce((a, b) => a + b.weightage, 0);
+  const totalWeightage = useMemo(() => SUBJECTS.reduce((a, b) => a + b.weightage, 0), []);
+  const totalStudyHours = useMemo(() => SUBJECTS.reduce((a, b) => a + b.hoursFirstRead + b.hoursRevision, 0), []);
   const daysLeft = useMemo(getDaysLeft, []);
   const currentPhase = useMemo(getCurrentPhase, []);
 
@@ -55,7 +57,7 @@ export default function Home() {
             <div className="stat-label">Subjects</div>
           </div>
           <div className="stat">
-            <div className="stat-num">300</div>
+            <div className="stat-num">{totalWeightage}</div>
             <div className="stat-label">MCQs in exam</div>
           </div>
           <div className="stat">
@@ -63,28 +65,34 @@ export default function Home() {
             <div className="stat-label">Pass mark</div>
           </div>
           <div className="stat">
-            <div className="stat-num">~2900</div>
+            <div className="stat-num">~{totalStudyHours}+</div>
             <div className="stat-label">Study hrs plan</div>
           </div>
         </div>
       </PageHeader>
 
       {/* Current phase banner */}
-      {currentPhase ? (
-        <div className="phase-banner">
-          <span className="phase-banner-label">📍 You are here</span>
-          <strong>{currentPhase.phase}</strong>
-          <span className="phase-banner-goal">{currentPhase.goal}</span>
-          <Link to="/roadmap" className="phase-banner-link">View full roadmap →</Link>
+      {currentPhase === "POST" ? (
+        <div className="phase-banner phase-banner-post" style={{ backgroundColor: "#1e1b4b", borderColor: "#3730a3" }}>
+          <span className="phase-banner-label">🎉 Roadmap Complete</span>
+          <strong>The FMGE June 2027 Exam has passed!</strong>
+          <span className="phase-banner-goal">Congratulations on completing the 13-month journey. We hope you aced it!</span>
         </div>
-      ) : (
+      ) : currentPhase === "PRE" ? (
         <div className="phase-banner phase-banner-pre">
           <span className="phase-banner-label">⏳ Prep mode</span>
           <strong>Phase 1 starts June 1, 2026 — {Math.ceil((new Date("2026-06-01") - new Date()) / 86400000)} days to go</strong>
           <span className="phase-banner-goal">Use this time to set up Marrow / Anki / study space. Read the roadmap.</span>
           <Link to="/roadmap" className="phase-banner-link">See the plan →</Link>
         </div>
-      )}
+      ) : currentPhase ? (
+        <div className="phase-banner">
+          <span className="phase-banner-label">📍 You are here</span>
+          <strong>{currentPhase.phase}</strong>
+          <span className="phase-banner-goal">{currentPhase.goal}</span>
+          <Link to="/roadmap" className="phase-banner-link">View full roadmap →</Link>
+        </div>
+      ) : null}
 
       <section className="grid grid-3 home-grid">
         {tiles.map((t) => (

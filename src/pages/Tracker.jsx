@@ -7,7 +7,11 @@ import useLocalStorage from "../hooks/useLocalStorage";
 import { SUBJECTS } from "../data/subjects";
 import { PHASE1_WEEKS, ROADMAP } from "../data/roadmap";
 
-const today = () => new Date().toISOString().slice(0, 10);
+const today = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+};
+
 const DEFAULT_TASKS = {
   recall: false, slot1: false, mcq1: false, slot2: false,
   mcq2: false, revision: false, mcqMix: false, feynman: false, sleep: false,
@@ -29,40 +33,51 @@ export default function Tracker() {
 
   const [syncStatus, setSyncStatus] = useState("idle"); // idle | syncing | synced | error
   const [loaded, setLoaded] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false); // Add hydration state
   const debounceRef = useRef(null);
 
-  // ===== Firestore: load on mount =====
+  // ===== Firestore: load on mount or user change =====
   useEffect(() => {
     async function load() {
+      setIsHydrated(false);
       try {
         const snap = await getDoc(doc(db, "users", userId));
         if (snap.exists()) {
           const d = snap.data();
-          if (d.subjectProgress) setSubjectProgress(p => ({ ...d.subjectProgress, ...p }));
-          if (d.weeklyDone) setWeeklyDone(p => ({ ...d.weeklyDone, ...p }));
-          if (d.phaseDone) setPhaseDone(p => ({ ...d.phaseDone, ...p }));
-          if (Array.isArray(d.studyDays))
-            setStudyDays(p => [...new Set([...d.studyDays, ...p])].sort());
-          if (d.tasksToday?.[today()])
-            setTasksToday(p => ({ ...d.tasksToday[today()], ...p }));
+          // Use remote data exclusively to prevent local default state from overwriting cloud state
+          if (d.subjectProgress) setSubjectProgress(d.subjectProgress);
+          if (d.weeklyDone) setWeeklyDone(d.weeklyDone);
+          if (d.phaseDone) setPhaseDone(d.phaseDone);
+          if (Array.isArray(d.studyDays)) setStudyDays(d.studyDays.sort());
+          if (d.tasksToday?.[today()]) setTasksToday({ ...DEFAULT_TASKS, ...d.tasksToday[today()] });
         }
       } catch (_) {
         // offline — localStorage already provides the data
       } finally {
+        setIsHydrated(true);
         setLoaded(true);
       }
     }
-    load();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    if (user) {
+      load();
+    } else {
+      setIsHydrated(true);
+      setLoaded(true);
+    }
+  }, [userId, user]); // React to userId changes (e.g. login)
 
   // ===== Firestore: debounced sync on every change =====
   useEffect(() => {
-    if (!loaded) return;
+    if (!loaded || !isHydrated) return; // Wait for remote data before syncing!
+    if (!user) {
+      setSyncStatus("guest");
+      return;
+    }
     setSyncStatus("syncing");
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(async () => {
       try {
-        await setDoc(doc(db, "users", userId), {
+        await setDoc(doc(db, "users", user.uid), {
           subjectProgress,
           weeklyDone,
           phaseDone,
@@ -71,11 +86,12 @@ export default function Tracker() {
           updatedAt: new Date().toISOString(),
         }, { merge: true });
         setSyncStatus("synced");
-      } catch (_) {
+      } catch (err) {
+        console.error("Firestore sync failed:", err);
         setSyncStatus("error");
       }
     }, 1500);
-  }, [loaded, subjectProgress, weeklyDone, phaseDone, studyDays, tasksToday]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [loaded, isHydrated, subjectProgress, weeklyDone, phaseDone, studyDays, tasksToday, user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ===== Streak calc =====
   const { streak, totalDays } = useMemo(() => {
@@ -83,7 +99,7 @@ export default function Tracker() {
     let streak = 0;
     const d = new Date();
     while (true) {
-      const key = d.toISOString().slice(0, 10);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
       if (set.has(key)) { streak++; d.setDate(d.getDate() - 1); }
       else break;
     }
@@ -150,7 +166,8 @@ export default function Tracker() {
         <div style={{ marginTop: "0.8rem", fontSize: "0.82rem" }}>
           {syncStatus === "syncing" && <span style={{ color: "var(--warn)" }}>⏳ Syncing to cloud…</span>}
           {syncStatus === "synced" && <span style={{ color: "var(--success)" }}>☁️ Synced to cloud</span>}
-          {syncStatus === "error" && <span style={{ color: "var(--danger)" }}>⚠️ Offline — saved locally</span>}
+          {syncStatus === "guest" && <span style={{ color: "var(--text-mute)" }}>💾 Guest Mode — Saved locally</span>}
+          {syncStatus === "error" && <span style={{ color: "var(--danger)" }}>⚠️ Sync Failed — Check network/permissions</span>}
           {syncStatus === "idle" && !loaded && <span style={{ color: "var(--text-mute)" }}>⏳ Loading…</span>}
         </div>
       </PageHeader>

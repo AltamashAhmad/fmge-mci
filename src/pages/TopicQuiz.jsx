@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { getSubjectBySlug, getTopicBySlug } from "../data/quizSubjects";
 import { getTopicQuestions, getMockQuestions } from "../data/questions/index";
 import { useQuizScore } from "../hooks/useQuizScore";
@@ -12,6 +12,7 @@ const MODES = ["practice", "mock"];
 export default function TopicQuiz() {
   const { subject, topic } = useParams();
   const navigate = useNavigate();
+  const { state } = useLocation();
 
   const subj = getSubjectBySlug(subject);
   const topicData = getTopicBySlug(subject, topic);
@@ -29,7 +30,13 @@ export default function TopicQuiz() {
   const { saveAttempt } = useQuizScore();
   const { bookmarks, toggleBookmark } = useBookmarks();
 
-  const allTopicQs = useMemo(() => getTopicQuestions(subject, topic), [subject, topic]);
+  const allTopicQs = useMemo(() => {
+    const qs = getTopicQuestions(subject, topic);
+    if (state?.retryQuestions) {
+      return qs.filter(q => state.retryQuestions.includes(q.id));
+    }
+    return qs;
+  }, [subject, topic, state?.retryQuestions]);
 
   function startQuiz(selectedMode) {
     setMode(selectedMode);
@@ -196,11 +203,11 @@ export default function TopicQuiz() {
           ← Prev
         </button>
 
-        {mode === "practice" && !isLastQ && (
+        {!isLastQ && (
           <button
             className="tq-nav-btn primary"
             onClick={nextQuestion}
-            disabled={!revealed[currentQ.id]}
+            disabled={mode === "practice" ? !revealed[currentQ.id] : false}
           >
             Next →
           </button>

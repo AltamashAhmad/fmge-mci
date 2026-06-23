@@ -8,6 +8,7 @@ const NAV_LINKS = [
   { to: "/tracker", label: "Tracker" },
   { to: "/images", label: "Image Qs" },
   { to: "/analytics", label: "Analytics" },
+  { to: "/bookmarks", label: "Bookmarks", icon: "🔖" },
 ];
 
 const STUDY_LINKS = [

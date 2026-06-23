@@ -31,6 +31,10 @@ export default function QuizHub() {
     (a, s) => a + getQuestions(s.slug).length,
     0
   );
+  const totalPYQs = QUIZ_SUBJECTS.reduce(
+    (a, s) => a + s.topics.reduce((b, t) => b + (t.pyqCount || 0), 0),
+    0
+  );
 
   function getCompletion(slug) {
     const subj = QUIZ_SUBJECTS.find((s) => s.slug === slug);
@@ -71,8 +75,8 @@ export default function QuizHub() {
             <span className="hub-stat-label">Questions</span>
           </div>
           <div className="hub-stat">
-            <span className="hub-stat-val">10</span>
-            <span className="hub-stat-label">PYQ Papers</span>
+            <span className="hub-stat-val">{totalPYQs}</span>
+            <span className="hub-stat-label">PYQ Tags</span>
           </div>
         </div>
         <Link to="/grand-test" className="btn-grand-test">

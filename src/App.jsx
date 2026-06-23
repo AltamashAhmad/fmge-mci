@@ -22,8 +22,20 @@ import GrandTest from "./pages/GrandTest";
 import Analytics from "./pages/Analytics";
 import ScoreHistory from "./pages/ScoreHistory";
 import HolidaySprint from "./pages/HolidaySprint";
+import Bookmarks from "./pages/Bookmarks";
+import { useAuth } from "./contexts/AuthContext";
 
 export default function App() {
+  const { loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="app-loader">
+        <div className="spinner"></div>
+      </div>
+    );
+  }
+
   return (
     <>
       <ScrollToTop />
@@ -50,6 +62,7 @@ export default function App() {
           <Route path="grand-test" element={<GrandTest />} />
           <Route path="analytics" element={<Analytics />} />
           <Route path="scores" element={<ScoreHistory />} />
+          <Route path="bookmarks" element={<Bookmarks />} />
           <Route path="holiday-sprint" element={<HolidaySprint />} />
           <Route path="*" element={<NotFound />} />
         </Route>

@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
+import { doc, setDoc, getDoc, serverTimestamp, collection, addDoc } from "firebase/firestore";
 import {
   auth,
   db,
@@ -18,29 +18,100 @@ export function useAuth() {
   return useContext(AuthContext);
 }
 
-// Migrate anonymous localStorage tracker data to Firestore for newly signed-in user
+// Migrate all local storage guest data to Firestore
 async function migrateAnonymousData(uid) {
   try {
-    const trackerRef = doc(db, "users", uid, "tracker", "data");
-    const existing = await getDoc(trackerRef);
-    if (existing.exists()) return; // already has data, don't overwrite
+    const allKeys = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      allKeys.push(localStorage.key(i));
+    }
+    const keysToRemove = [];
 
-    const keys = ["subjectProgress", "weeklyDone", "phaseDone", "studyDays"];
-    const migrated = {};
-    keys.forEach((k) => {
+    // 1. Migrate Tracker Data -> users/{uid}
+    const trackerKeys = ["subjectProgress", "weeklyDone", "phaseDone", "studyDays"];
+    const trackerData = {};
+
+    trackerKeys.forEach((k) => {
       try {
         const raw = localStorage.getItem(`fmge.${k}`);
-        if (raw) migrated[k] = JSON.parse(raw);
-      } catch {
-        // ignore parse errors
+        if (raw) {
+          trackerData[k] = JSON.parse(raw);
+          keysToRemove.push(`fmge.${k}`);
+        }
+      } catch {}
+    });
+
+    allKeys.forEach(key => {
+      if (key && key.startsWith("fmge.tasksToday.")) {
+        try {
+          const raw = localStorage.getItem(key);
+          if (raw) {
+            const dateStr = key.split("fmge.tasksToday.")[1];
+            trackerData.tasksToday = trackerData.tasksToday || {};
+            trackerData.tasksToday[dateStr] = JSON.parse(raw);
+            keysToRemove.push(key);
+          }
+        } catch {}
       }
     });
 
-    if (Object.keys(migrated).length > 0) {
-      await setDoc(trackerRef, { ...migrated, migratedAt: new Date().toISOString() });
+    if (Object.keys(trackerData).length > 0) {
+      await setDoc(doc(db, "users", uid), { ...trackerData, migratedAt: new Date().toISOString() }, { merge: true });
     }
-  } catch {
-    // non-critical migration — fail silently
+
+    // 2. Migrate Bookmarks -> users/{uid}/bookmarks/{qId}
+    try {
+      const rawBmk = localStorage.getItem("fmge.bookmarks");
+      if (rawBmk) {
+        const bookmarks = JSON.parse(rawBmk);
+        for (const [qId, meta] of Object.entries(bookmarks)) {
+          await setDoc(doc(db, "users", uid, "bookmarks", qId), { ...meta, savedAt: meta.savedAt ? new Date(meta.savedAt) : serverTimestamp() });
+        }
+        keysToRemove.push("fmge.bookmarks");
+      }
+    } catch {}
+
+    // 3. Migrate Quiz History -> users/{uid}/attempts/{autoId}
+    try {
+      const rawHist = localStorage.getItem("fmge.quizHistory");
+      if (rawHist) {
+        const history = JSON.parse(rawHist);
+        const attemptsRef = collection(db, "users", uid, "attempts");
+        for (const attempt of history) {
+          const attemptData = { ...attempt, ts: attempt.ts ? new Date(attempt.ts) : serverTimestamp() };
+          await addDoc(attemptsRef, attemptData);
+        }
+        keysToRemove.push("fmge.quizHistory");
+      }
+    } catch {}
+
+    // 4. Migrate Quiz Summaries -> users/{uid}/quizSummary/{subjectSlug}
+    for (const key of allKeys) {
+      if (key && key.startsWith("fmge.quizSummary.")) {
+        try {
+          const raw = localStorage.getItem(key);
+          if (raw) {
+            const subjectSlug = key.split("fmge.quizSummary.")[1];
+            const summary = JSON.parse(raw);
+            if (summary.bestByTopic) {
+              for (const top in summary.bestByTopic) {
+                if (summary.bestByTopic[top].lastAttempt) {
+                  summary.bestByTopic[top].lastAttempt = new Date(summary.bestByTopic[top].lastAttempt);
+                }
+              }
+            }
+            await setDoc(doc(db, "users", uid, "quizSummary", subjectSlug), summary, { merge: true });
+            keysToRemove.push(key);
+          }
+        } catch {}
+      }
+    }
+
+    // 5. Cleanup Local Storage to prevent duplicate uploads
+    keysToRemove.forEach((k) => localStorage.removeItem(k));
+
+  } catch (err) {
+    console.error("Migration failed:", err);
   }
 }
 
@@ -68,11 +139,13 @@ async function ensureUserProfile(firebaseUser) {
         },
         lastActive: serverTimestamp(),
       });
-      await migrateAnonymousData(firebaseUser.uid);
     } else {
       // Update lastActive
       await setDoc(ref, { lastActive: serverTimestamp() }, { merge: true });
     }
+    
+    // Always attempt migration on login
+    await migrateAnonymousData(firebaseUser.uid);
   } catch {
     // non-critical — offline scenario
   }
@@ -84,12 +157,14 @@ export function AuthProvider({ children }) {
   const [authError, setAuthError] = useState(null);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        await ensureUserProfile(firebaseUser);
-      }
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);
       setLoading(false);
+      
+      if (firebaseUser) {
+        // Run in background so it doesn't block the UI from showing the logged-in state
+        ensureUserProfile(firebaseUser);
+      }
     });
     return unsubscribe;
   }, []);

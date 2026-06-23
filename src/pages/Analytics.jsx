@@ -15,7 +15,10 @@ export default function Analytics() {
     setLoading(true);
     loadHistory(50)
       .then(setHistory)
-      .catch(() => setHistory([]))
+      .catch((err) => {
+        console.error("Firebase Read Error:", err);
+        setHistory([]);
+      })
       .finally(() => setLoading(false));
   }, [authLoading, loadHistory]);
 
