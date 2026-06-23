@@ -153,17 +153,28 @@ async function ensureUserProfile(firebaseUser) {
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      setUser(firebaseUser);
-      setLoading(false);
-      
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        // Run in background so it doesn't block the UI from showing the logged-in state
+        setUser(firebaseUser);
+        // Fetch isAdmin status
+        try {
+          const snap = await getDoc(doc(db, "users", firebaseUser.uid));
+          setIsAdmin(snap.exists() ? !!snap.data().isAdmin : false);
+        } catch {
+          setIsAdmin(false);
+        }
+        setLoading(false);
+        // Run in background so it doesn't block the UI
         ensureUserProfile(firebaseUser);
+      } else {
+        setUser(null);
+        setIsAdmin(false);
+        setLoading(false);
       }
     });
     return unsubscribe;
@@ -214,6 +225,7 @@ export function AuthProvider({ children }) {
   const value = {
     user,
     currentUser: user, // alias used by useQuizScore, useBookmarks
+    isAdmin,
     loading,
     authError,
     setAuthError,

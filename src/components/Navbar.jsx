@@ -85,7 +85,7 @@ export default function Navbar() {
   const [resourceOpen, setResourceOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
+  const { user, isAdmin, signOut } = useAuth();
 
   useEffect(() => {
     setDrawerOpen(false);
@@ -122,6 +122,11 @@ export default function Navbar() {
               {icon && <span>{icon}</span>}{label}
             </NavLink>
           ))}
+          {isAdmin && (
+            <NavLink to="/admin" className={({ isActive }) => `nav-item admin-nav-link${isActive ? " active" : ""}`}>
+              <span>🛡️</span>Admin
+            </NavLink>
+          )}
           <NavDropdown label="Study" links={STUDY_LINKS} open={studyOpen} onToggle={setStudyOpen} />
           <NavDropdown label="Resources" links={RESOURCE_LINKS} open={resourceOpen} onToggle={setResourceOpen} />
         </div>
@@ -170,6 +175,11 @@ export default function Navbar() {
               {icon && <span className="nav-drawer-icon">{icon}</span>}{label}
             </NavLink>
           ))}
+          {isAdmin && (
+            <NavLink to="/admin" className={({ isActive }) => `nav-drawer-item admin-nav-link${isActive ? " active" : ""}`} onClick={closeDrawer}>
+              <span className="nav-drawer-icon">🛡️</span>Admin
+            </NavLink>
+          )}
         </div>
         <div className="nav-drawer-divider" />
         <div className="nav-drawer-section">

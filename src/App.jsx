@@ -23,6 +23,8 @@ import Analytics from "./pages/Analytics";
 import ScoreHistory from "./pages/ScoreHistory";
 import HolidaySprint from "./pages/HolidaySprint";
 import Bookmarks from "./pages/Bookmarks";
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminUserDetails from "./pages/AdminUserDetails";
 import { useAuth } from "./contexts/AuthContext";
 
 export default function App() {
@@ -63,7 +65,9 @@ export default function App() {
           <Route path="analytics" element={<Analytics />} />
           <Route path="scores" element={<ScoreHistory />} />
           <Route path="bookmarks" element={<Bookmarks />} />
-          <Route path="holiday-sprint" element={<HolidaySprint />} />
+          <Route path="/holiday-sprint" element={<HolidaySprint />} />
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/user/:uid" element={<AdminUserDetails />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
